@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Themis Finals :: devenv</title>
+  </head>
+  <body>
+    <h1>Themis Finals :: devenv</h1>
+    <div style="display: flex">
+        <section style="flex: 1 0 0;">
+        	<header>
+        		<h2>Push</h2>
+        	</header>
+        	<form id="push">
+        		<label for="push-endpoint">Endpoint</label>
+        		<input name="endpoint" id="push-endpoint" type="text" value="127.0.0.1">
+        		<br>
+        		<label for="push-round">Round</label>
+        		<input name="round" id="push-round" type="number" min="1" value="1">
+        		<br>
+        		<label for="push-team">Team</label>
+        		<input name="team" id="push-team" type="text" value="Team">
+        		<br>
+        		<label for="push-service">Service</label>
+        		<input name="service" id="push-service" type="text" value="Service">
+        		<br>
+        		<button type="submit">Push</button>
+        	</form>
+        </section>
+        <section style="flex: 2 0 0">
+            <header>
+                <h2>Flags</h2>
+            </header>
+            <div id="flags"></div>
+        </section>
+    </div>
+
+    <section>
+    	<header>
+    		<h2>Log</h2>
+    	</header>
+    	<div id="log"></div>
+    </section>
+
+    <script>
+    	document.addEventListener('DOMContentLoaded', function (event) {
+            var flagsContainerEl = document.getElementById('flags')
+
+            function onRequestPull() {
+                var flag = this.getAttribute('data-flag')
+                var form = new FormData()
+                form.append('flag', flag)
+                fetch('/pull', {
+                    method: 'POST',
+                    body: form
+                })
+                .then(function (r) {
+                    return r.json()
+                })
+                .then(function (data) {
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
+            }
+
+            function renderFlags (flags) {
+                while (flagsContainerEl.firstChild) {
+                    flagsContainerEl.removeChild(flagsContainerEl.firstChild);
+                }
+
+                for (var i=0; i<flags.length; ++i) {
+                    var item = flags[i]
+                    var itemEl = document.createElement('div')
+
+                    var flagEl = document.createElement('code')
+                    var flagTextEl = document.createTextNode(item.flag)
+                    flagEl.appendChild(flagTextEl)
+                    itemEl.appendChild(flagEl)
+                    itemEl.appendChild(document.createTextNode('\u00A0'))
+
+                    var buttonEl = document.createElement('button')
+                    var buttonTextEl = document.createTextNode('PULL')
+                    buttonEl.appendChild(buttonTextEl)
+                    buttonEl.disabled = item.status !== 101
+                    buttonEl.onclick = onRequestPull
+                    buttonEl.setAttribute('data-flag', item.flag)
+                    itemEl.appendChild(buttonEl)
+
+                    flagsContainerEl.appendChild(itemEl)
+                }
+            }
+
+    		var logContainerEl = document.getElementById('log')
+
+    		function renderLog (log) {
+    			while (logContainerEl.firstChild) {
+    				logContainerEl.removeChild(logContainerEl.firstChild);
+				}
+
+				for (var i=0; i<log.length; ++i) {
+                    var item = log[i]
+					var itemEl = document.createElement('div')
+
+                    var headerEl = document.createElement('p')
+
+                    var itemTypeEl = document.createElement('span')
+                    itemTypeEl.style.color = (item.type === 'outcoming') ? 'red' : 'green'
+                    var itemTypeTextEl = document.createTextNode((item.type === 'outcoming') ? '🡒' : '🡐')
+                    itemTypeEl.appendChild(itemTypeTextEl)
+                    headerEl.appendChild(itemTypeEl)
+                    headerEl.appendChild(document.createTextNode('\u00A0'))
+
+                    var itemTimestampEl = document.createElement('code')
+                    var itemTimestampTextEl = document.createTextNode('[' + new Date(item.timestamp).toUTCString() + ']')
+                    itemTimestampEl.appendChild(itemTimestampTextEl)
+                    headerEl.appendChild(itemTimestampEl)
+                    headerEl.appendChild(document.createTextNode('\u00A0'))
+
+                    var itemCategoryEl = document.createElement('strong')
+                    var itemCategoryTextEl = document.createTextNode(' ' + item.category)
+                    itemCategoryEl.appendChild(itemCategoryTextEl)
+                    headerEl.appendChild(itemCategoryEl)
+
+                    itemEl.appendChild(headerEl)
+
+                    var detailsEl = document.createElement('details')
+                    var summaryEl = document.createElement('summary')
+                    var summaryTextEl = document.createTextNode('Data')
+                    summaryEl.appendChild(summaryTextEl)
+                    detailsEl.appendChild(summaryEl)
+
+					var codeEl = document.createElement('code')
+					var codeTextEl = document.createTextNode(JSON.stringify(item.raw))
+					codeEl.appendChild(codeTextEl)
+                    detailsEl.appendChild(codeEl)
+					itemEl.appendChild(detailsEl)
+
+                    logContainerEl.appendChild(itemEl)
+				}
+    		}
+
+    		function loadLog () {
+    			fetch('/log')
+    			.then(function (r) {
+    				return r.json()
+    			})
+    			.then(function (data) {
+    				renderLog(data)
+    			})
+    			.catch(function (err) {
+    				console.log(err)
+    			})
+    		}
+
+            function loadFlags () {
+                fetch('/flags')
+                .then(function (r) {
+                    return r.json()
+                })
+                .then(function (data) {
+                    renderFlags(data)
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
+            }
+
+    		var pushFormEl = document.getElementById('push')
+			pushFormEl.addEventListener('submit', function (e) {
+				e.preventDefault()
+				fetch('/push', {
+					method: 'POST',
+					body: new FormData(pushFormEl)
+				})
+				.then(function (r) {
+					return r.json()
+				})
+				.then(function (data) {
+				})
+				.catch(function (err) {
+					console.log(err)
+				})
+			}, false)
+
+    		var source = new EventSource("{{ url_for('sse.stream') }}")
+    		source.addEventListener('log', function (e) {
+        		var data = JSON.parse(e.data)
+        		renderLog(data)
+    		}, false)
+
+            source.addEventListener('flags', function (e) {
+                var data = JSON.parse(e.data)
+                renderFlags(data)
+            }, false)
+
+    		source.addEventListener('error', function (e) {
+        		console.log("Failed to connect to event stream. Is Redis running?")
+    		}, false)
+
+    		loadLog()
+            loadFlags()
+		})
+    </script>
+  </body>
+</html>
