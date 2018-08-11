@@ -9,12 +9,14 @@ import logging
 import sys
 import dateutil.parser
 from dateutil.tz import tzlocal
-from base64 import urlsafe_b64encode, urlsafe_b64decode
 from themis.finals.checker.result import Result
 from datetime import datetime
 import jwt
 
-logging.basicConfig(handlers=[logging.StreamHandler(sys.stdout)], level=logging.DEBUG)
+logging.basicConfig(
+    handlers=[logging.StreamHandler(sys.stdout)],
+    level=logging.DEBUG
+)
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +48,9 @@ def load_checker():
 
 class CapsuleDecoder:
     def __init__(self):
-        self.key = os.getenv('THEMIS_FINALS_FLAG_SIGN_KEY_PUBLIC').replace('\\n', "\n")
+        self.key = os.getenv(
+            'THEMIS_FINALS_FLAG_SIGN_KEY_PUBLIC'
+        ).replace('\\n', "\n")
         self.wrap_prefix_len = len(os.getenv('THEMIS_FINALS_FLAG_WRAP_PREFIX'))
         self.wrap_suffix_len = len(os.getenv('THEMIS_FINALS_FLAG_WRAP_SUFFIX'))
 
@@ -90,7 +94,7 @@ async def basic_auth(request, handler):
     if auth_header:
         auth = BasicAuth.decode(auth_header)
         authorized = \
-            auth.login == os.getenv('THEMIS_FINALS_AUTH_CHECKER_USERNAME') and \
+            auth.login == os.getenv('THEMIS_FINALS_AUTH_CHECKER_USERNAME') and\
             auth.password == os.getenv('THEMIS_FINALS_AUTH_CHECKER_PASSWORD')
 
     if not authorized:
@@ -121,7 +125,8 @@ class CheckerServer:
         updated_label = label
         message = None
         try:
-            raw_result = await self.checker_push(endpoint, capsule, label, metadata)
+            raw_result = await self.checker_push(endpoint, capsule, label,
+                                                 metadata)
             if isinstance(raw_result, tuple):
                 if len(raw_result) > 0:
                     result = raw_result[0]
@@ -139,7 +144,8 @@ class CheckerServer:
         result = Result.INTERNAL_ERROR
         message = None
         try:
-            raw_result = await self.checker_pull(endpoint, capsule, label, metadata)
+            raw_result = await self.checker_pull(endpoint, capsule, label,
+                                                 metadata)
             if isinstance(raw_result, tuple):
                 if len(raw_result) > 0:
                     result = raw_result[0]
@@ -154,35 +160,35 @@ class CheckerServer:
     async def background_push(self, payload):
         params = payload['params']
         metadata = Metadata(payload['metadata'])
-        timestamp_created = dateutil.parser.parse(metadata.timestamp)
-        timestamp_delivered = datetime.now(tzlocal())
+        t_created = dateutil.parser.parse(metadata.timestamp)
+        t_delivered = datetime.now(tzlocal())
 
         flag = self.capsule_decoder.get_flag(params['capsule'])
 
         status, updated_label, message = await self.internal_push(
             params['endpoint'],
             params['capsule'],
-            urlsafe_b64decode(params['label'].encode('ascii')),
+            params['label'],
             metadata
         )
 
-        timestamp_processed = datetime.now(tzlocal())
+        t_processed = datetime.now(tzlocal())
 
         job_result = dict(
             status=status.value,
             flag=flag,
-            label=urlsafe_b64encode(updated_label).decode('ascii'),
+            label=updated_label,
             message=message
         )
 
-        delivery_time = (timestamp_delivered - timestamp_created).total_seconds()
+        delivery_time = (t_delivered - t_created).total_seconds()
         processing_time = (
-            timestamp_processed - timestamp_delivered
+            t_processed - t_delivered
         ).total_seconds()
 
-        log_message = ('PUSH flag `{0}` /{1:d} to `{2}`@`{3}` ({4}) - status {5},'
-                       ' label `{6}` [delivery {7:.2f}s, processing '
-                       '{8:.2f}s]').format(
+        log_message = ('PUSH flag `{0}` /{1:d} to `{2}`@`{3}` ({4}) - '
+                       'status {5}, label `{6}` [delivery {7:.2f}s, '
+                       'processing {8:.2f}s]').format(
             flag,
             metadata.round,
             metadata.service_name,
@@ -206,19 +212,19 @@ class CheckerServer:
     async def background_pull(self, payload):
         params = payload['params']
         metadata = Metadata(payload['metadata'])
-        timestamp_created = dateutil.parser.parse(metadata.timestamp)
-        timestamp_delivered = datetime.now(tzlocal())
+        t_created = dateutil.parser.parse(metadata.timestamp)
+        t_delivered = datetime.now(tzlocal())
 
         flag = self.capsule_decoder.get_flag(params['capsule'])
 
         status, message = await self.internal_pull(
             params['endpoint'],
             params['capsule'],
-            urlsafe_b64decode(params['label'].encode('utf-8')),
+            params['label'],
             metadata
         )
 
-        timestamp_processed = datetime.now(tzlocal())
+        t_processed = datetime.now(tzlocal())
 
         job_result = dict(
             request_id=params['request_id'],
@@ -226,9 +232,9 @@ class CheckerServer:
             message=message
         )
 
-        delivery_time = (timestamp_delivered - timestamp_created).total_seconds()
+        delivery_time = (t_delivered - t_created).total_seconds()
         processing_time = (
-            timestamp_processed - timestamp_delivered
+            t_processed - t_delivered
         ).total_seconds()
 
         log_message = ('PULL flag `{0}` /{1:d} from `{2}`@`{3}` ({4}) with '
@@ -266,7 +272,8 @@ class CheckerServer:
                     elif task_type == 'pull':
                         await self.background_pull(payload)
                 except Exception:
-                    logger.error('Caught an exception', exc_info=sys.exc_info())
+                    logger.error('Caught an exception',
+                                 exc_info=sys.exc_info())
             else:
                 await asyncio.sleep(0.1)
 
@@ -326,5 +333,5 @@ class CheckerServer:
 
 
 if __name__ == '__main__':
-    checker = CheckerServer(host=os.getenv('HOST'), port=int(os.getenv('PORT', '5000')))
+    checker = CheckerServer(host='0.0.0.0', port=80)
     checker.run_app()

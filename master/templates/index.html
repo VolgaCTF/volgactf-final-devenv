@@ -6,46 +6,65 @@
   <body>
     <h1>Themis Finals :: devenv</h1>
     <div style="display: flex">
-        <section style="flex: 1 0 0;">
-        	<header>
-        		<h2>Push</h2>
-        	</header>
-        	<form id="push">
-        		<label for="push-endpoint">Endpoint</label>
-        		<input name="endpoint" id="push-endpoint" type="text" value="127.0.0.1">
-        		<br>
-        		<label for="push-round">Round</label>
-        		<input name="round" id="push-round" type="number" min="1" value="1">
-        		<br>
-        		<label for="push-team">Team</label>
-        		<input name="team" id="push-team" type="text" value="Team">
-        		<br>
-        		<label for="push-service">Service</label>
-        		<input name="service" id="push-service" type="text" value="Service">
-        		<br>
-        		<button type="submit">Push</button>
-        	</form>
+        <section style="width: 20%;">
+            <header>
+                <h2>Push</h2>
+            </header>
+            <form id="push">
+                <label for="push-checker">Checker</label>
+                <input name="checker" id="push-checker" type="text" value="checker">
+                <br>
+                <label for="push-endpoint">Endpoint</label>
+                <input name="endpoint" id="push-endpoint" type="text" value="service">
+                <br>
+                <label for="push-round">Round</label>
+                <input name="round" id="push-round" type="number" min="1" value="1">
+                <br>
+                <label for="push-team">Team</label>
+                <input name="team" id="push-team" type="text" value="Team">
+                <br>
+                <label for="push-service">Service</label>
+                <input name="service" id="push-service" type="text" value="Service">
+                <br>
+                <button type="submit">Push</button>
+            </form>
         </section>
-        <section style="flex: 2 0 0">
+        <section style="padding-left: 15px; width: 35%;">
             <header>
                 <h2>Flags</h2>
+                <button id="clear_flags">Clear</button>
             </header>
             <div id="flags"></div>
         </section>
+
+        <section style="padding-left: 15px; width: 45%;">
+            <header>
+                <h2>Logs</h2>
+                <button id="clear_logs">Clear</button>
+            </header>
+            <div id="logs"></div>
+        </section>
     </div>
 
-    <section>
-    	<header>
-    		<h2>Log</h2>
-    	</header>
-    	<div id="log"></div>
-    </section>
-
     <script>
-    	document.addEventListener('DOMContentLoaded', function (event) {
+        document.addEventListener('DOMContentLoaded', function (event) {
+            function onClearFlags () {
+                fetch('/flags', {
+                    method: 'DELETE'
+                })
+                .then(function (data) {
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
+            }
+
+            var flagsClearButton = document.getElementById('clear_flags')
+            flagsClearButton.onclick = onClearFlags
+
             var flagsContainerEl = document.getElementById('flags')
 
-            function onRequestPull() {
+            function onRequestPull () {
                 var flag = this.getAttribute('data-flag')
                 var form = new FormData()
                 form.append('flag', flag)
@@ -71,6 +90,8 @@
                 for (var i=0; i<flags.length; ++i) {
                     var item = flags[i]
                     var itemEl = document.createElement('div')
+                    itemEl.style.borderTop = '2px dotted black'
+                    itemEl.style.padding = '10px 0'
 
                     var flagEl = document.createElement('code')
                     var flagTextEl = document.createTextNode(item.flag)
@@ -86,25 +107,52 @@
                     buttonEl.setAttribute('data-flag', item.flag)
                     itemEl.appendChild(buttonEl)
 
+                    var br1El = document.createElement('br')
+                    itemEl.appendChild(br1El)
+
+                    var labelEl = document.createElement('code')
+                    labelEl.style.color = 'gray'
+                    var smallEl = document.createElement('small')
+                    var labelTextEl = document.createTextNode(item.label)
+                    smallEl.appendChild(labelTextEl)
+                    labelEl.appendChild(smallEl)
+                    itemEl.appendChild(labelEl)
+
                     flagsContainerEl.appendChild(itemEl)
                 }
             }
 
-    		var logContainerEl = document.getElementById('log')
+            function onClearLogs () {
+                fetch('/logs', {
+                    method: 'DELETE'
+                })
+                .then(function (data) {
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
+            }
 
-    		function renderLog (log) {
-    			while (logContainerEl.firstChild) {
-    				logContainerEl.removeChild(logContainerEl.firstChild);
-				}
+            var logsClearButton = document.getElementById('clear_logs')
+            logsClearButton.onclick = onClearLogs
 
-				for (var i=0; i<log.length; ++i) {
-                    var item = log[i]
-					var itemEl = document.createElement('div')
+            var logsContainerEl = document.getElementById('logs')
+
+            function renderLogs (logs) {
+                while (logsContainerEl.firstChild) {
+                    logsContainerEl.removeChild(logsContainerEl.firstChild);
+                }
+
+                for (var i=0; i<logs.length; ++i) {
+                    var item = logs[i]
+                    var itemEl = document.createElement('div')
+                    itemEl.style.borderTop = '2px dotted black'
 
                     var headerEl = document.createElement('p')
+                    headerEl.style.margin = '10px 0'
 
                     var itemTypeEl = document.createElement('span')
-                    itemTypeEl.style.color = (item.type === 'outcoming') ? 'red' : 'green'
+                    itemTypeEl.style.color = (item.type === 'outcoming') ? 'red' : 'blue'
                     var itemTypeTextEl = document.createTextNode((item.type === 'outcoming') ? '🡒' : '🡐')
                     itemTypeEl.appendChild(itemTypeTextEl)
                     headerEl.appendChild(itemTypeEl)
@@ -123,34 +171,78 @@
 
                     itemEl.appendChild(headerEl)
 
+                    if (item.type === 'incoming') {
+                        var itemStatusEl = document.createElement('p')
+                        itemStatusEl.style.margin = '10px 0'
+
+                        var itemStatusSpanEl = document.createElement('span')
+                        var statusColor = null
+                        var statusText = null
+                        switch (item.raw.status) {
+                            case 101:
+                                statusColor = 'green'
+                                statusText = 'UP'
+                                break
+                            case 102:
+                                statusColor = 'orange'
+                                statusText = 'CORRUPT'
+                                break
+                            case 103:
+                                statusColor = 'rosybrown'
+                                statusText = 'MUMBLE'
+                                break
+                            case 104:
+                                statusColor = 'red'
+                                statusText = 'DOWN'
+                                break
+                            case 110:
+                                statusColor = 'gray'
+                                statusText = 'INTERNAL_ERROR'
+                                break
+                            default:
+                                statusColor = 'gray'
+                                statusText = 'N/A'
+                                break
+                        }
+                        itemStatusSpanEl.style.color = statusColor
+                        itemStatusSpanEl.style.fontWeight = 'bold'
+                        var itemStatusTextEl = document.createTextNode(statusText)
+                        itemStatusSpanEl.appendChild(itemStatusTextEl)
+                        itemStatusEl.appendChild(itemStatusSpanEl)
+                        itemEl.appendChild(itemStatusEl)
+                    }
+
                     var detailsEl = document.createElement('details')
+                    detailsEl.style.margin = '10px 0'
+                    detailsEl.style.color = 'gray'
                     var summaryEl = document.createElement('summary')
                     var summaryTextEl = document.createTextNode('Data')
                     summaryEl.appendChild(summaryTextEl)
                     detailsEl.appendChild(summaryEl)
 
-					var codeEl = document.createElement('code')
-					var codeTextEl = document.createTextNode(JSON.stringify(item.raw))
-					codeEl.appendChild(codeTextEl)
+                    var codeEl = document.createElement('code')
+                    codeEl.style.wordWrap = 'break-word'
+                    var codeTextEl = document.createTextNode(JSON.stringify(item.raw))
+                    codeEl.appendChild(codeTextEl)
                     detailsEl.appendChild(codeEl)
-					itemEl.appendChild(detailsEl)
+                    itemEl.appendChild(detailsEl)
 
-                    logContainerEl.appendChild(itemEl)
-				}
-    		}
+                    logsContainerEl.appendChild(itemEl)
+                }
+            }
 
-    		function loadLog () {
-    			fetch('/log')
-    			.then(function (r) {
-    				return r.json()
-    			})
-    			.then(function (data) {
-    				renderLog(data)
-    			})
-    			.catch(function (err) {
-    				console.log(err)
-    			})
-    		}
+            function loadLogs () {
+                fetch('/logs')
+                .then(function (r) {
+                    return r.json()
+                })
+                .then(function (data) {
+                    renderLogs(data)
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
+            }
 
             function loadFlags () {
                 fetch('/flags')
@@ -165,41 +257,41 @@
                 })
             }
 
-    		var pushFormEl = document.getElementById('push')
-			pushFormEl.addEventListener('submit', function (e) {
-				e.preventDefault()
-				fetch('/push', {
-					method: 'POST',
-					body: new FormData(pushFormEl)
-				})
-				.then(function (r) {
-					return r.json()
-				})
-				.then(function (data) {
-				})
-				.catch(function (err) {
-					console.log(err)
-				})
-			}, false)
+            var pushFormEl = document.getElementById('push')
+            pushFormEl.addEventListener('submit', function (e) {
+                e.preventDefault()
+                fetch('/push', {
+                    method: 'POST',
+                    body: new FormData(pushFormEl)
+                })
+                .then(function (r) {
+                    return r.json()
+                })
+                .then(function (data) {
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
+            }, false)
 
-    		var source = new EventSource("{{ url_for('sse.stream') }}")
-    		source.addEventListener('log', function (e) {
-        		var data = JSON.parse(e.data)
-        		renderLog(data)
-    		}, false)
+            var source = new EventSource("{{ url_for('sse.stream') }}")
+            source.addEventListener('logs', function (e) {
+                var data = JSON.parse(e.data)
+                renderLogs(data)
+            }, false)
 
             source.addEventListener('flags', function (e) {
                 var data = JSON.parse(e.data)
                 renderFlags(data)
             }, false)
 
-    		source.addEventListener('error', function (e) {
-        		console.log("Failed to connect to event stream. Is Redis running?")
-    		}, false)
+            source.addEventListener('error', function (e) {
+                console.log('Failed to connect to event stream. Is Redis running?')
+            }, false)
 
-    		loadLog()
+            loadLogs()
             loadFlags()
-		})
+        })
     </script>
   </body>
 </html>
