@@ -3,23 +3,19 @@ services:
   redis:
     image: 'redis:alpine'
   master:
-    build: './master'
+    image: 'aspyatkin/themis-finals-devenv-master:v1.0.0'
     ports:
       - '8000:80'
-    volumes:
-      - './master:/code'
     env_file:
       - themis-finals-private.env
       - themis-finals-public.env
       - themis-finals-auth.env
   checker:
-    build: './checker'
-    volumes:
-      - './checker:/code'
+    # TODO: replace with your own image
+    image: 'aspyatkin/themis-finals-devenv-checker:v1.0.0'
     env_file:
       - themis-finals-public.env
       - themis-finals-auth.env
   service:
-    build: './service'
-    volumes:
-      - './service:/code'
+    # TODO: replace with your own image
+    image: 'aspyatkin/themis-finals-devenv-service:v1.0.0'
