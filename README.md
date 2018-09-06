@@ -53,5 +53,13 @@ To develop & test your a service along with a checker, `service` and `checker` s
   ...
 ```
 
+## See also
+
+1. [master container source](https://github.com/themis-project/themis-finals-devenv-master)
+2. [service container source](https://github.com/themis-project/themis-finals-devenv-service)
+3. [checker container source](https://github.com/themis-project/themis-finals-devenv-checker)
+
+These may be used as boilerplate while devising new services and checkers.
+
 ## License
 MIT @ [Alexander Pyatkin](https://github.com/aspyatkin)
