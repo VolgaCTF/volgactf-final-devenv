@@ -19,7 +19,7 @@ $ pip3 install ecdsa && python3 env_vars.py
 $ cp docker-compose.example.yml docker-compose.yml
 ```
 
-The commands above generate a few secrets (for flag signing) as well as create a `docker-compose.yml` file from a sample. This file may require further customization (see [Development](#Development) section).
+The commands above generate a few secrets (for flag signing) as well as create a `docker-compose.yml` file from a sample. This file may require further customization (see [Development](#development) section).
 
 ## Running
 ```
