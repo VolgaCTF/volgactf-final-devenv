@@ -12,10 +12,15 @@ services:
       - themis-finals-auth.env
   checker:
     # TODO: replace with your own image
-    image: 'aspyatkin/themis-finals-devenv-checker:v1.0.0'
+    image: 'aspyatkin/themis-finals-devenv-checker:v1.2.0'
     env_file:
       - themis-finals-public.env
       - themis-finals-auth.env
+    # To enable reload capabilities, uncomment the following lines
+    # tty: true
+    # volumes:
+    #   - '/path/to/your/checker/src:/src'
+    # command: ['python', '-m', 'watchgod', 'server.main']
   service:
     # TODO: replace with your own image
     image: 'aspyatkin/themis-finals-devenv-service:v1.0.0'
