@@ -3,19 +3,19 @@ services:
   redis:
     image: 'redis:alpine'
   master:
-    image: 'aspyatkin/themis-finals-devenv-master:v1.0.0'
+    image: 'volgactf/volgactf-final-devenv-master:1.0.0'
     ports:
       - '8000:80'
     env_file:
-      - themis-finals-private.env
-      - themis-finals-public.env
-      - themis-finals-auth.env
+      - volgactf-final-private.env
+      - volgactf-final-public.env
+      - volgactf-final-auth.env
   checker:
     # TODO: replace with your own image
-    image: 'aspyatkin/themis-finals-devenv-checker:v1.2.0'
+    image: 'volgactf/volgactf-final-devenv-checker:1.0.0'
     env_file:
-      - themis-finals-public.env
-      - themis-finals-auth.env
+      - volgactf-final-public.env
+      - volgactf-final-auth.env
     # To enable reload capabilities, uncomment the following lines
     # tty: true
     # volumes:
@@ -23,4 +23,4 @@ services:
     # command: ['python', '-m', 'watchgod', 'server.main']
   service:
     # TODO: replace with your own image
-    image: 'aspyatkin/themis-finals-devenv-service:v1.0.0'
+    image: 'volgactf/volgactf-final-devenv-service:1.0.0'

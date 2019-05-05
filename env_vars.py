@@ -11,7 +11,7 @@ def get_random_str(size=16):
 
 
 def main():
-    with open('themis-finals-auth.env', 'w', encoding='utf-8') as f1:
+    with open('volgactf-final-auth.env', 'w', encoding='utf-8') as f1:
         master_pwd = get_random_str()
         checker_pwd = get_random_str()
         template1 = (
@@ -30,21 +30,21 @@ def main():
     private_key = SigningKey.generate(curve=NIST256p)
     public_key = private_key.get_verifying_key()
 
-    with open('themis-finals-public.env', 'w', encoding='utf-8') as f2:
+    with open('volgactf-final-public.env', 'w', encoding='utf-8') as f2:
         template2 = (
             'THEMIS_FINALS_FLAG_SIGN_KEY_PUBLIC={0}\n'
             'THEMIS_FINALS_FLAG_WRAP_PREFIX={1}\n'
             'THEMIS_FINALS_FLAG_WRAP_SUFFIX={2}'
         ).format(
             public_key.to_pem().decode('ascii').strip().replace('\n', '\\n'),
-            'ThemisFinals{',
+            'VolgaCTF{',
             '}'
         )
         f2.write(template2)
 
     secret = urlsafe_b64encode(urandom(32)).decode('ascii')
 
-    with open('themis-finals-private.env', 'w', encoding='utf-8') as f3:
+    with open('volgactf-final-private.env', 'w', encoding='utf-8') as f3:
         template3 = (
             'THEMIS_FINALS_FLAG_SIGN_KEY_PRIVATE={0}\n'
             'THEMIS_FINALS_FLAG_GENERATOR_SECRET={1}'
