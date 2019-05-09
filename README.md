@@ -2,16 +2,19 @@
 
 A platform to develop & test an A/D CTF service and its checker.
 
+[VolgaCTF Final](https://github.com/VolgaCTF/volgactf-final) is an automatic checking system (ACS) for A/D CTF contests.
+
 ## Prerequisites
 - *nix compatible system
+- [Python 3](https://www.python.org/downloads/)
 - [Docker Compose](https://docs.docker.com/compose/)
-- Python 3
 
 ## A general outlook
 This repository contains a docker-compose configuration for several containers, namely `redis`, `master`, `checker` and `service`, which provide a development and testing environment.
 
 ## Network
-`master` must be able to communicate with `redis` and `checker` containers.  
+`master` must be able to communicate with `redis` and `checker` containers.
+
 `checker` must be able to communicate with `master` and `service` containers.
 
 ## Setup
