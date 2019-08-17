@@ -3,7 +3,7 @@ services:
   redis:
     image: 'redis:alpine'
   master:
-    image: 'volgactf/volgactf-final-devenv-master:1.0.0'
+    image: 'volgactf/volgactf-final-devenv-master:2.0.0'
     ports:
       - '8000:80'
     env_file:
@@ -12,10 +12,12 @@ services:
       - volgactf-final-auth.env
   checker:
     # TODO: replace with your own image
-    image: 'volgactf/volgactf-final-devenv-checker:1.0.0'
+    image: 'volgactf/volgactf-final-devenv-checker:2.0.0'
     env_file:
       - volgactf-final-public.env
       - volgactf-final-auth.env
+    # environment:
+    #   - VOLGACTF_FINAL_PING_ENABLED=yes
     # To enable reload capabilities, uncomment the following lines
     # tty: true
     # volumes:
