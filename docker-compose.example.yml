@@ -3,16 +3,27 @@ services:
   redis:
     image: 'redis:alpine'
   master:
-    image: 'volgactf/volgactf-final-devenv-master:2.0.0'
+    image: 'volgactf/volgactf-final-devenv-master:3.0.0'
     ports:
       - '8000:80'
     env_file:
       - volgactf-final-private.env
       - volgactf-final-public.env
       - volgactf-final-auth.env
+    # environment:
+    #   - DEFAULT_TEAM_NAME=Roosters
+    #   - DEFAULT_SERVICE_NAME=Jinn The Ripper
+    #   - DEFAULT_FLAG_LIFETIME=180
+    #   - DEFAULT_ROUND_TIMESPAN=90
+    #   - DEFAULT_POLL_TIMESPAN=25
+    #   - DEFAULT_POLL_DELAY=10
+    #   - LOG_HISTORY=50
+    #   - FLAG_HISTORY=10
   checker:
     # TODO: replace with your own image
     image: 'volgactf/volgactf-final-devenv-checker:2.0.0'
+    # OR use the following:
+    # build: /path/to/your/checker
     env_file:
       - volgactf-final-public.env
       - volgactf-final-auth.env
