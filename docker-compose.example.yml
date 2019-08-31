@@ -3,7 +3,7 @@ services:
   redis:
     image: 'redis:alpine'
   master:
-    image: 'volgactf/volgactf-final-devenv-master:3.0.0'
+    image: 'volgactf/volgactf-final-devenv-master:3.0.1'
     ports:
       - '8000:80'
     env_file:
