@@ -6,7 +6,7 @@ from os import urandom
 from base64 import urlsafe_b64encode
 
 
-def get_random_str(size=16):
+def get_random_str(size=32):
     return ''.join(choice(ascii_letters + digits) for _ in range(size))
 
 
