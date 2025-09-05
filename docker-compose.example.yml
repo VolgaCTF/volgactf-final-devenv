@@ -25,7 +25,7 @@ services:
     #   - FLAG_HISTORY=25
   checker:
     # TODO: replace with your own image
-    image: 'volgactf/volgactf-final-devenv-checker:4.0.0'
+    image: 'volgactf/volgactf-final-devenv-checker:5.0.0'
     # OR comment out the line above and uncomment
     # the following lines for development/debug purposes:
     # build: '/path/to/your-checker'
